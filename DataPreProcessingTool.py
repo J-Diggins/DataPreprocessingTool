@@ -148,15 +148,60 @@ def select_start_row():
 
 # Button to change folder selection
 def select_folder():
-    global folder_path, column_names
+    global folder_path, column_names, pilot_value
     folder_path = ''
     column_names = []
     
-    messagebox.showinfo(
-        "Folder Info",
-        "Selecting a folder will use all .csv files within that folder.\n"
-        "If you have already ran the program once, you may wish to delete the original output file."
-    )
+    # Choose pilot data
+    pilot_dialog = tk.Toplevel(root)
+    pilot_dialog.title("Pilot Data")
+    pilot_dialog.geometry("200x200")
+       
+    pilot_var = tk.IntVar(value=1)
+   
+   
+    tk.Label(pilot_dialog, text="Select which data to include").pack(pady=5)
+
+    tk.Radiobutton(pilot_dialog, 
+               text="Exclude Pilot Data",
+               padx = 20, 
+               variable=pilot_var, 
+               value=1).pack(pady=5)
+
+    tk.Radiobutton(pilot_dialog, 
+               text="Include Pilot Data",
+               padx = 20, 
+               variable=pilot_var, 
+               value=2).pack(pady=5)
+    
+    tk.Radiobutton(pilot_dialog, 
+               text="Pilot Data Only",
+               padx = 20, 
+               variable=pilot_var, 
+               value=3).pack(pady=5)
+    
+    def sel_next():
+       #update pilot values
+       global pilot_value
+       val = pilot_var.get()
+       if val == 1:
+            pilot_value = 0
+       elif val == 2:
+            pilot_value = 1
+       else:
+            pilot_value = 2
+        
+       pilot_dialog.destroy()
+   
+    tk.Button(pilot_dialog, text="Next", command=sel_next).pack(side="right", padx=10, pady=10)
+    tk.Button(pilot_dialog, text="Cancel", command=pilot_dialog.destroy).pack(side="left", padx=10, pady=10)
+    
+    pilot_dialog.wait_window()
+    
+    print(pilot_var.get())
+    print(pilot_value)
+
+    
     folder_path = askdirectory()
     if not folder_path:
         messagebox.showwarning("No folder", "No folder was selected.")
@@ -199,20 +244,10 @@ def select_folder():
     # Update the folder path label to show the current folder path
     path_label.config(text=folder_path)
     
-# Include pilot data:
-def inc_pilot():
-    global pilot_value
-    pilot_inc = pilot.get()
-    if pilot_inc == 1:
-        pilot_value = 0
-    elif pilot_inc == 2:
-        pilot_value = 1
-    else:
-        pilot_value = 2
 
 
 # Function to exclude data within a range
-def exc_values():
+def trim_values():
     # Create a new window for excluding values
     dialog = tk.Toplevel(root)
     dialog.title("Trim Values")
@@ -474,39 +509,16 @@ def run_analysis():
 # Menus
 # Select menu
 
-# Include pilot
-pilot_menu = tk.Menu(root, tearoff=False)
-pilot = tk.IntVar()
-pilot.set(1)  # Default theme ("Light".)
-pilot_menu.add_radiobutton(
-    label="Exclude Pilot",
-    variable=pilot,
-    value=1,
-    command=inc_pilot
-)
-pilot_menu.add_radiobutton(
-    label="Include Pilot",
-    value=2,
-    variable=pilot,
-    command=inc_pilot
-)
-pilot_menu.add_radiobutton(
-    label="Pilot Only",
-    value=3,
-    variable=pilot,
-    command=inc_pilot
-)
 
 select_menu = tk.Menu(root, tearoff = False)
 select_menu.add_command(label = 'Start Row', command = select_start_row)
-select_menu.add_cascade(menu = pilot_menu,label = 'Pilot Data')
 select_menu.add_command(label = 'Folder', command = select_folder)
 menu.add_cascade(label = 'Select', menu = select_menu)
 
 
 #Exclude Values
 values_menu = tk.Menu(root, tearoff = False)
-values_menu.add_command(label = 'Trim', command = exc_values)
+values_menu.add_command(label = 'Trim', command = trim_values)
 menu.add_cascade(label = 'Trim Values', menu = values_menu)
 
 #Run Analysis
@@ -533,7 +545,7 @@ def selection_changed(event):
     )
                         
 # Function to exclude data within a range
-def exc_values():
+def trim_values():
     # Create a new window for excluding values
     dialog = tk.Toplevel(root)
     dialog.title("Exclude Values")
