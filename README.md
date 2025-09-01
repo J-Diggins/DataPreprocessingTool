@@ -12,4 +12,6 @@ Please make sure to keep my name on the program :)
 
 Piloting note: This option currently does not work as intended. If you are using a version before 2025, it does not save the name as "pilot". Additionally if you change the name from "pilot" in a 2025 version, the program will be unable to exclude them.
 
-**##### Change Log**
+##### Change Log
+
+01/09/2025 - Moved the pilot select options into the select folder area, to force a choice before folder selection, to ensure pilot selection remains accurate
