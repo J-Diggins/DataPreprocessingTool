@@ -15,3 +15,10 @@ Piloting note: This option currently does not work as intended. If you are using
 ### Change Log
 
 01/09/2025 - Moved the pilot select options into the select folder area, to force a choice before folder selection, to ensure pilot selection remains accurate
+
+02/09/2025 - Removed redundant code. Created a helper function to streamline iterating over .csv files
+
+### To Do
+- Move to a better UI
+- Speed up the initial loading of the folder location
+- Further minor changes to code to improve efficiency
