@@ -18,6 +18,8 @@ Piloting note: This option currently does not work as intended. If you are using
 
 02/09/2025 - Removed redundant code. Created a helper function to streamline iterating over .csv files
 
+24/09/2025 - Added a helper function and changed the filename saves, so that it does not save conditions files as floats when they should be integers.
+
 ### To Do
 - Move to a better UI
 - Speed up the initial loading of the folder location
