@@ -237,7 +237,11 @@ def select_folder():
     # Update the folder path label to show the current folder path
     path_label.config(text=folder_path)
     
-
+# Helper function for ensuring condition names are strings
+def clean_value(val):
+    if isinstance(val, float) and val.is_integer():
+        return str(int(val))
+    return str(val)
 
 # Function to exclude data within a range
 def trim_values():
@@ -391,7 +395,9 @@ def run_analysis():
     
                         for combination in condition_combinations:
                             filtered_df = df.copy()
-                            condition_str = "_".join([f"{col}_{val}" for col, val in zip(condition_columns, combination)])
+                            # ----------- UPDATE THIS LINE -----------
+                            condition_str = "_".join([f"{col}_{clean_value(val)}" for col, val in zip(condition_columns, combination)])
+                            # -----------------------------------------
                             column_name = f"{analysis_choice}_{column_choice}_{condition_str}"
     
                             for col, val in zip(condition_columns, combination):
@@ -437,7 +443,9 @@ def run_analysis():
     
                     for combination in condition_combinations:
                         filtered_df = df.copy()
-                        condition_str = "_".join([f"{col}_{val}" for col, val in zip(condition_columns, combination)])
+                        # ----------- UPDATE THIS LINE -----------
+                        condition_str = "_".join([f"{col}_{clean_value(val)}" for col, val in zip(condition_columns, combination)])
+                        # -----------------------------------------
                         column_name = f"{analysis_choice}_{column_choice}_{condition_str}"
     
                         for col, val in zip(condition_columns, combination):
