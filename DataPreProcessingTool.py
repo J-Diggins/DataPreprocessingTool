@@ -80,13 +80,12 @@ def open_help_window():
     add_label(scrollable_frame, "Welcome to the PsychoPy Data Extraction Tool. This tool was created to help quickly run basic statistical analysis on a folder containing the .csv results files from a PsychoPy experiment. THIS PROGRAM CAN ONLY ACCEPT .CSV FILES.")
 
     add_label(scrollable_frame, "Getting Started", bold=True, pad=(5, 10))
+    add_label(scrollable_frame, " If your experiment has a practice session, or you don’t want to include the first number of rows, you can choose a different starting row. Choose “Select” and then “Start Row”. In the starting row box, enter the row number you wish to start from, from the left of the excel sheet.")
     add_label(scrollable_frame, "The first step in the process of extracting your data is to locate your root folder. This will likely be a folder within your PsychoPy experiment folder called “data”. This folder will hold all of the .csv files from participant data collection.")
-    add_label(scrollable_frame, "To get started press “Select” and then “Folder”. This will open a dialogue asking you to pick a folder. There will be popup dialogues reminding you of what you are doing.")
-
-    add_label(scrollable_frame, "Selecting a starting line", bold=True, pad=(5, 10))
-    add_label(scrollable_frame, "If your experiment has a practice session, or you don’t want to include the first number of rows, you can choose a different starting row. Choose “Select” and then “Starting Row”. In the starting row box, enter the row number you wish to start from, from the left of the excel sheet. If wish to use all rows, you can keep the default value as “0”.")
+    add_label(scrollable_frame, "To get started press “Select” and then “Folder”.")
 
     add_label(scrollable_frame, "Selecting a folder", bold=True, pad=(5, 10))
+    add_label(scrollable_frame, "The first dialogue box will ask if you wish to exclude pilot data, only use pilot data, or include all data.")
     add_label(scrollable_frame, "The next dialogue box will be where you locate your folder. This will be the folder containing all of the .csv files you wish to use. If you have selected a folder the words “no folder selected” will change to your file path. If you have previously ran the program, you might wish to delete the original output file, so it does not load those columns into the tool.")
 
     add_label(scrollable_frame, "Trimming Values", bold=True, pad=(5, 10))
@@ -111,7 +110,8 @@ def open_help_window():
     add_label(scrollable_frame, "Running the Analysis", bold=True, pad=(5, 10))
     add_label(scrollable_frame, "To run the analysis select “Analysis” and then “Run”. It will first ask you for the folder in which you wish to save the data. It will then ask you for a filename for your data.")
 
-    add_label(scrollable_frame, "If you run into any bugs or issues when using this program. Please contact the Psychology technician, Jake Diggins, so they can look into the problem.")
+    add_label(scrollable_frame, "If you run into any bugs or issues when using this program. Please contact the Jake Diggins at j.diggins1@aston.ac.uk, so they can look into the problem.")
+
 
     canvas.pack(side="left", fill="both", expand=True)
     scrollbar.pack(side="right", fill="y")
