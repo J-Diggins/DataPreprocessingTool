@@ -20,6 +20,8 @@ Piloting note: This option currently does not work as intended. If you are using
 
 24/09/2025 - Added a helper function and changed the filename saves, so that it does not save conditions files as floats when they should be integers.
 
+16/12/2025 - Changed help instructions to better suit previous changes.
+
 ### To Do
 - Move to a better UI
 - Speed up the initial loading of the folder location
