@@ -22,6 +22,8 @@ Piloting note: This option currently does not work as intended. If you are using
 
 16/12/2025 - Changed help instructions to better suit previous changes.
 
+19/02/2026 - Updated save function
+
 ### To Do
 - Move to a better UI
 - Speed up the initial loading of the folder location
