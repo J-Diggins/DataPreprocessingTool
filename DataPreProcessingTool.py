@@ -330,158 +330,146 @@ def trim_values():
 # Function for the Run Analysis button, which will run the analysis and save the file
 
 def run_analysis():
-    # Allow user to select a folder and save 
-    save_folder = filedialog.askdirectory(title="Select Folder to Save Results")
-    if not save_folder:
-        messagebox.showerror("Error", "No save folder selected.")
+    # Ask user for file and save location in one dialog
+    # Note: asksaveasfilename() already handles overwrite confirmation
+    save_path = filedialog.asksaveasfilename(
+        parent=root,
+        defaultextension=".csv",
+        filetypes=[("CSV files", "*.csv")],
+        title="Select file name and location to save results"
+    )
+    if not save_path:
+        messagebox.showerror("Error", "No file selected for saving.")
         return
-    save_filename = simpledialog.askstring("Save File", "Enter a name for the result CSV file (without extension):")
-    if not save_filename:
-        messagebox.showerror("Error", "No file name provided.")
-        return
-    save_path = os.path.join(save_folder, f"{save_filename}.csv")
-    
-    # If file exists, confirm deletion to allow overwriting
-    if os.path.exists(save_path):
-        confirm_overwrite = messagebox.askyesno("Overwrite Confirmation", f"'{save_filename}.csv' already exists. Do you want to overwrite it?")
-        if not confirm_overwrite:
-            messagebox.showinfo("Cancelled", "File save operation cancelled.")
-            return
-        os.remove(save_path)
 
     # Initialize a list to store result rows
     results = []
-    
-    for filename, df in get_csv_dataframes(folder_path, skip_rows=row_skip):
-    
-            result_row = {"filename": filename}
-    
-            # Iterate over each widget configuration
-            for widget_id, widget in widgets.items():
-                comboboxes = widget['combos']
-    
-                if len(comboboxes) < 2:
-                    continue  # Skip if insufficient selections
-    
-                analysis_choice = comboboxes[0].get()
-                column_choice = comboboxes[1].get()
-    
-                # Make sure the chosen column exists
-                if column_choice not in df.columns:
-                    result_row[f"{analysis_choice}_{column_choice}"] = "Column not found"
-                    continue
 
-                # Conditions check
-                conditions = comboboxes[2:]
-                condition_filters = {}
-                for condition_combo in conditions:
-                    condition_column = condition_combo.get()
-                    if condition_column and condition_column in df.columns:
-                        unique_values = df[condition_column].dropna().unique()
-                        condition_filters[condition_column] = unique_values
-    
-                # If no statistical analysis is selected, save data as comma-separated list with conditions applied
-                if not analysis_choice:
-                    if not condition_filters:
-                        column_name = f"Data_{column_choice}"
-                        try:
-                            result = ", ".join(map(str, df[column_choice].dropna().tolist()))
-                        except Exception:
-                            result = "Error retrieving data"
-                        result_row[column_name] = result
-                    else:
-                        condition_combinations = list(itertools.product(*condition_filters.values()))
-                        condition_columns = list(condition_filters.keys())
-    
-                        for combination in condition_combinations:
-                            filtered_df = df.copy()
-                            # ----------- UPDATE THIS LINE -----------
-                            condition_str = "_".join([f"{col}_{clean_value(val)}" for col, val in zip(condition_columns, combination)])
-                            # -----------------------------------------
-                            column_name = f"{analysis_choice}_{column_choice}_{condition_str}"
-    
-                            for col, val in zip(condition_columns, combination):
-                                filtered_df = filtered_df[filtered_df[col] == val]
-    
-                            if not filtered_df.empty:
-                                try:
-                                    result = ", ".join(map(str, filtered_df[column_choice].dropna().tolist()))
-                                except Exception:
-                                    result = "Error retrieving data"
-                                result_row[column_name] = result
-                    continue  # Skip further processing for this file
-    
-                # If analysis is selected, calculate the chosen statistic
+    for filename, df in get_csv_dataframes(folder_path, skip_rows=row_skip):
+        result_row = {"filename": filename}
+
+        # Iterate over each widget configuration
+        for widget_id, widget in widgets.items():
+            comboboxes = widget['combos']
+
+            if len(comboboxes) < 2:
+                continue  # Skip if insufficient selections
+
+            analysis_choice = comboboxes[0].get()
+            column_choice = comboboxes[1].get()
+
+            # Make sure the chosen column exists
+            if column_choice not in df.columns:
+                result_row[f"{analysis_choice}_{column_choice}"] = "Column not found"
+                continue
+
+            # Conditions check
+            conditions = comboboxes[2:]
+            condition_filters = {}
+            for condition_combo in conditions:
+                condition_column = condition_combo.get()
+                if condition_column and condition_column in df.columns:
+                    unique_values = df[condition_column].dropna().unique()
+                    condition_filters[condition_column] = unique_values
+
+            # If no statistical analysis is selected, save data as comma-separated list with conditions applied
+            if not analysis_choice:
                 if not condition_filters:
-                    column_name = f"{analysis_choice}_{column_choice}"
+                    column_name = f"Data_{column_choice}"
                     try:
-                        if analysis_choice == "Mean":
-                            result = df[column_choice].mean()
-                        elif analysis_choice == "Median":
-                            result = df[column_choice].median()
-                        elif analysis_choice == "Inter Quartile Range":
-                            result = stats.iqr(df[column_choice])
-                        elif analysis_choice == "S.D":
-                            result = df[column_choice].std()
-                        elif analysis_choice == "Sum":
-                            result = df[column_choice].sum()
-                        elif analysis_choice == "N":
-                            result = df[column_choice].count()
-                        elif analysis_choice == "Percentage":
-                            result = (df[column_choice].sum() / df[column_choice].count()) * 100
-                        else:
-                            result = "Unknown Analysis"
+                        result = ", ".join(map(str, df[column_choice].dropna().tolist()))
                     except Exception:
-                        result = "Error"
-    
+                        result = "Error retrieving data"
                     result_row[column_name] = result
-    
                 else:
-                    # With conditions, iterate over all combinations
                     condition_combinations = list(itertools.product(*condition_filters.values()))
                     condition_columns = list(condition_filters.keys())
-    
+
                     for combination in condition_combinations:
                         filtered_df = df.copy()
-                        # ----------- UPDATE THIS LINE -----------
                         condition_str = "_".join([f"{col}_{clean_value(val)}" for col, val in zip(condition_columns, combination)])
-                        # -----------------------------------------
                         column_name = f"{analysis_choice}_{column_choice}_{condition_str}"
-    
+
                         for col, val in zip(condition_columns, combination):
                             filtered_df = filtered_df[filtered_df[col] == val]
-    
+
                         if not filtered_df.empty:
                             try:
-                                if analysis_choice == "Mean":
-                                    result = filtered_df[column_choice].mean()
-                                elif analysis_choice == "Median":
-                                    result = filtered_df[column_choice].median()
-                                elif analysis_choice == "Inter Quartile Range":
-                                    result = stats.iqr(filtered_df[column_choice])
-                                elif analysis_choice == "S.D":
-                                    result = filtered_df[column_choice].std()
-                                elif analysis_choice == "Sum":
-                                    result = filtered_df[column_choice].sum()
-                                elif analysis_choice == "N":
-                                    result = filtered_df[column_choice].count()
-                                elif analysis_choice == "Percentage":
-                                    result = (filtered_df[column_choice].sum() / filtered_df[column_choice].count()) * 100
-                                else:
-                                    result = "Unknown Analysis"
+                                result = ", ".join(map(str, filtered_df[column_choice].dropna().tolist()))
                             except Exception:
-                                result = "Error"
-    
+                                result = "Error retrieving data"
                             result_row[column_name] = result
-    
-            # After processing all widget configurations for this file, append the result_row to results
-            results.append(result_row)
-    
+                continue  # Skip further processing for this file
+
+            # If analysis is selected, calculate the chosen statistic
+            if not condition_filters:
+                column_name = f"{analysis_choice}_{column_choice}"
+                try:
+                    if analysis_choice == "Mean":
+                        result = df[column_choice].mean()
+                    elif analysis_choice == "Median":
+                        result = df[column_choice].median()
+                    elif analysis_choice == "Inter Quartile Range":
+                        result = stats.iqr(df[column_choice])
+                    elif analysis_choice == "S.D":
+                        result = df[column_choice].std()
+                    elif analysis_choice == "Sum":
+                        result = df[column_choice].sum()
+                    elif analysis_choice == "N":
+                        result = df[column_choice].count()
+                    elif analysis_choice == "Percentage":
+                        result = (df[column_choice].sum() / df[column_choice].count()) * 100
+                    else:
+                        result = "Unknown Analysis"
+                except Exception:
+                    result = "Error"
+
+                result_row[column_name] = result
+
+            else:
+                # With conditions, iterate over all combinations
+                condition_combinations = list(itertools.product(*condition_filters.values()))
+                condition_columns = list(condition_filters.keys())
+
+                for combination in condition_combinations:
+                    filtered_df = df.copy()
+                    condition_str = "_".join([f"{col}_{clean_value(val)}" for col, val in zip(condition_columns, combination)])
+                    column_name = f"{analysis_choice}_{column_choice}_{condition_str}"
+
+                    for col, val in zip(condition_columns, combination):
+                        filtered_df = filtered_df[filtered_df[col] == val]
+
+                    if not filtered_df.empty:
+                        try:
+                            if analysis_choice == "Mean":
+                                result = filtered_df[column_choice].mean()
+                            elif analysis_choice == "Median":
+                                result = filtered_df[column_choice].median()
+                            elif analysis_choice == "Inter Quartile Range":
+                                result = stats.iqr(filtered_df[column_choice])
+                            elif analysis_choice == "S.D":
+                                result = filtered_df[column_choice].std()
+                            elif analysis_choice == "Sum":
+                                result = filtered_df[column_choice].sum()
+                            elif analysis_choice == "N":
+                                result = filtered_df[column_choice].count()
+                            elif analysis_choice == "Percentage":
+                                result = (filtered_df[column_choice].sum() / filtered_df[column_choice].count()) * 100
+                            else:
+                                result = "Unknown Analysis"
+                        except Exception:
+                            result = "Error"
+
+                        result_row[column_name] = result
+
+        # After processing all widget configurations for this file, append the result_row to results
+        results.append(result_row)
+
     # Convert the results list to a DataFrame and save
     if results:
         results_df = pd.DataFrame(results)
         results_df.to_csv(save_path, index=False)
-        print(f"Analysis results saved to '{save_path}'.")
+        messagebox.showinfo("Success", f"Analysis results saved to '{save_path}'.")
     else:
         messagebox.showinfo("No Results", "No valid data found in the CSV files.")
 
@@ -688,3 +676,4 @@ widgets[f"{row_counter}"] = {"buttons": [b, b1, b2], "combos": [c1, c2]}
 
 
 root.mainloop()
+
