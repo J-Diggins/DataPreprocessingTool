@@ -24,7 +24,8 @@ Piloting note: This option currently does not work as intended. If you are using
 
 19/02/2026 - Updated save function
 
+02/03/2026 - Updated so pilot data works with PsychoPy Studio - will check for a column named piloting, and then ask if you wish to exclude pilot data or not. If there is no column (for older datasets) it will ignore the question, as it will need to be manually filtered.
+
 ### To Do
 - Move to a better UI
-- Speed up the initial loading of the folder location
 - Further minor changes to code to improve efficiency
