@@ -3,7 +3,7 @@ import pandas as pd
 import itertools
 from scipy import stats 
 import tkinter as tk
-from tkinter import filedialog, messagebox, simpledialog,ttk
+from tkinter import filedialog, messagebox,ttk
 from tkinter.filedialog import askdirectory
 
 
@@ -124,9 +124,25 @@ def about_text():
                         "Please remember to credit the author.\n"
                         "Jake Diggins, Aston University, 2025")
 
-# Create Dataframes
-def get_csv_dataframes(folder_path, skip_rows=0):
-    #Return generator of (filename, dataframe) for each valid CSV in folder.
+# Check if piloting column exists in any CSV files
+def has_piloting_column(folder_path, skip_rows=0):
+    #Check if any CSV file in the folder has a 'piloting' column
+    for filename in os.listdir(folder_path):
+        if not filename.endswith('.csv'):
+            continue
+        file_path = os.path.join(folder_path, filename)
+        try:
+            df = pd.read_csv(file_path, header=0, skiprows=range(1, skip_rows))
+            if 'piloting' in df.columns:
+                return True
+        except:
+            continue
+    return False
+
+def get_csv_dataframes(folder_path, skip_rows=0, pilot_filter=None):
+    # Return generator of (filename, dataframe) for each valid CSV in folder.
+    # Filter for pilot data
+
     for filename in os.listdir(folder_path):
         if not filename.endswith('.csv'):
             continue
@@ -135,6 +151,19 @@ def get_csv_dataframes(folder_path, skip_rows=0):
             df = pd.read_csv(file_path, header=0, skiprows=range(1, skip_rows))
             if df.empty or df.shape[1] == 0:
                 continue
+            
+            # Apply pilot filtering if pilot_filter is specified and piloting column exists
+            if pilot_filter is not None and 'piloting' in df.columns:
+                piloting_values = df['piloting'].astype(str).str.lower()
+                
+                if pilot_filter == 0:  # Exclude pilot data
+                    if (piloting_values == 'true').any():
+                        continue
+                elif pilot_filter == 2:  # Only pilot data
+                    if not (piloting_values == 'true').any():
+                        continue
+                # pilot_filter == 1 means include all, so no filtering
+            
             yield filename, df
         except pd.errors.EmptyDataError:
             continue
@@ -171,56 +200,63 @@ def select_folder():
     folder_path = ''
     column_names = []
     
-    # Choose pilot data
-    pilot_dialog = tk.Toplevel(root)
-    pilot_dialog.title("Pilot Data")
-    pilot_dialog.geometry("200x200")
-       
-    pilot_var = tk.IntVar(value=1)
-   
-   
-    tk.Label(pilot_dialog, text="Select which data to include").pack(pady=5)
-
-    tk.Radiobutton(pilot_dialog, 
-               text="Exclude Pilot Data",
-               padx = 20, 
-               variable=pilot_var, 
-               value=1).pack(pady=5)
-
-    tk.Radiobutton(pilot_dialog, 
-               text="Include Pilot Data",
-               padx = 20, 
-               variable=pilot_var, 
-               value=2).pack(pady=5)
-    
-    tk.Radiobutton(pilot_dialog, 
-               text="Pilot Data Only",
-               padx = 20, 
-               variable=pilot_var, 
-               value=3).pack(pady=5)
-    
-    def sel_next():
-       #update pilot values
-       global pilot_value
-       val = pilot_var.get()
-       if val == 1:
-            pilot_value = 0
-       elif val == 2:
-            pilot_value = 1
-       else:
-            pilot_value = 2
-        
-       pilot_dialog.destroy()
-   
-    tk.Button(pilot_dialog, text="Next", command=sel_next).pack(side="right", padx=10, pady=10)
-    tk.Button(pilot_dialog, text="Cancel", command=pilot_dialog.destroy).pack(side="left", padx=10, pady=10)
-    
-    pilot_dialog.wait_window()
-    
-   
-    
+    # First, let user select folder
     folder_path = askdirectory()
-    for filename, df in get_csv_dataframes(folder_path, skip_rows=row_skip):
+    
+    # Check if piloting column exists
+    has_piloting = has_piloting_column(folder_path, skip_rows=row_skip)
+    
+    # Only show pilot dialog if piloting column exists
+    if has_piloting:
+        pilot_dialog = tk.Toplevel(root)
+        pilot_dialog.title("Pilot Data")
+        pilot_dialog.geometry("200x200")
+           
+        pilot_var = tk.IntVar(value=1)
+       
+       
+        tk.Label(pilot_dialog, text="Select which data to include").pack(pady=5)
+
+        tk.Radiobutton(pilot_dialog, 
+                   text="Exclude Pilot Data",
+                   padx = 20, 
+                   variable=pilot_var, 
+                   value=1).pack(pady=5)
+
+        tk.Radiobutton(pilot_dialog, 
+                   text="Include Pilot Data",
+                   padx = 20, 
+                   variable=pilot_var, 
+                   value=2).pack(pady=5)
+        
+        tk.Radiobutton(pilot_dialog, 
+                   text="Pilot Data Only",
+                   padx = 20, 
+                   variable=pilot_var, 
+                   value=3).pack(pady=5)
+        
+        def sel_next():
+           global pilot_value
+           val = pilot_var.get()
+           if val == 1:
+                pilot_value = 0
+           elif val == 2:
+                pilot_value = 1
+           else:
+                pilot_value = 2
+            
+           pilot_dialog.destroy()
+       
+        tk.Button(pilot_dialog, text="Next", command=sel_next).pack(side="right", padx=10, pady=10)
+        tk.Button(pilot_dialog, text="Cancel", command=pilot_dialog.destroy).pack(side="left", padx=10, pady=10)
+        
+        pilot_dialog.wait_window()
+    else:
+        # No piloting column found, set pilot_value to include all
+        pilot_value = 1
+    
+    # Load column names
+    for filename, df in get_csv_dataframes(folder_path, skip_rows=row_skip, pilot_filter=pilot_value):
         for i in df.columns:
             if not any(s in i for s in ignore_strings) and i not in column_names:
                 column_names.append(i)
@@ -231,10 +267,6 @@ def select_folder():
         c2.set("")  
 
     # Update folder path label
-    path_label.config(text=folder_path)
-  
-
-    # Update the folder path label to show the current folder path
     path_label.config(text=folder_path)
     
 # Helper function for ensuring condition names are strings
@@ -292,7 +324,7 @@ def trim_values():
 
             try:
                 # Apply trimming
-                for filename, df in get_csv_dataframes(folder_path):
+                for filename, df in get_csv_dataframes(folder_path, pilot_filter=pilot_value):
                     if column_choice in df.columns:
                             column_data = df[column_choice].dropna()
 
@@ -345,7 +377,7 @@ def run_analysis():
     # Initialize a list to store result rows
     results = []
 
-    for filename, df in get_csv_dataframes(folder_path, skip_rows=row_skip):
+    for filename, df in get_csv_dataframes(folder_path, skip_rows=row_skip, pilot_filter=pilot_value):
         result_row = {"filename": filename}
 
         # Iterate over each widget configuration
@@ -676,4 +708,3 @@ widgets[f"{row_counter}"] = {"buttons": [b, b1, b2], "combos": [c1, c2]}
 
 
 root.mainloop()
-
