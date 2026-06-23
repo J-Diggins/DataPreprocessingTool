@@ -28,6 +28,8 @@ Piloting note: This option currently does not work as intended. If you are using
 
 16/06/2026 - Added Main function to allow for better functionality testing.
 
+26/06/2026 - Added shift_rows function. This allows for moving rows around in the excel sheet if they are misaligned.
+
 ### To Do
 - Move to a better UI
 - Further minor changes to code to improve efficiency
