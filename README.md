@@ -14,7 +14,9 @@ Piloting note: This option currently does not work as intended. If you are using
 
 # Requirements
 Python 3
+
 SciPy
+
 TKinter
 
 ### Change Log
